@@ -6,11 +6,11 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../core/api.dart';
-import '../core/dl_client.dart';
 import '../core/models.dart';
 import '../core/store.dart';
 import '../core/theme.dart';
 import 'auth.dart';
+import 'download_sheet.dart';
 import 'player.dart';
 import 'play_helper.dart';
 import 'vip_sheet.dart';
@@ -139,33 +139,24 @@ class _DetailPageState extends State<DetailPage> {
     }
   }
 
-  /// 把当前影片的首集解析地址提交到第三方下载服务。
-  Future<void> _submitDownload() async {
+  /// 打开选集下载面板（复用 EpisodeDownloadSheet，逐集解析直链并提交）。
+  void _openDownloadSheet() {
     final st = context.read<AppState>();
     final s = st.s;
-    final sources = _vod.sources;
-    if (sources.isEmpty || sources[_srcIndex].episodes.isEmpty) {
+    final episodes = _vod.sources.isEmpty ? const <Episode>[] : _vod.sources[_srcIndex.clamp(0, _vod.sources.length - 1)].episodes;
+    if (episodes.isEmpty) {
       if (context.mounted) Toast.show(context, s.t('empty'));
       return;
     }
-    final ep = sources[_srcIndex].episodes.first;
-    try {
-      final info = await st.api.play(
-        code: _site,
-        play: ep.play,
-        q: ep.q,
-        token: st.user?.playToken,
-      );
-      final client = DlClient(st.dlBase, st.dlKey);
-      await client.submit(url: info.url, title: _vod.name, headers: info.headers);
-      if (context.mounted) Toast.show(context, s.t('dlSubmitted'));
-    } on ApiError catch (e) {
-      if (context.mounted) Toast.show(context, e.message);
-    } on DlException catch (e) {
-      if (context.mounted) Toast.show(context, e.message);
-    } catch (_) {
-      if (context.mounted) Toast.show(context, s.t('dlConnError'));
-    }
+    showAppSheet(
+      context,
+      child: EpisodeDownloadSheet(
+        vod: _vod,
+        site: _site,
+        episodes: episodes,
+        preselect: {0},
+      ),
+    );
   }
 
   @override
@@ -266,7 +257,7 @@ class _DetailPageState extends State<DetailPage> {
                           icon: Icons.cloud_download_outlined,
                           height: 46,
                           expanded: true,
-                          onTap: () => _submitDownload(),
+                          onTap: () => _openDownloadSheet(),
                         ),
                       ),
                     if (_loading) ...[

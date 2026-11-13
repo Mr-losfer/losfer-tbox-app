@@ -14,6 +14,7 @@ import '../core/store.dart';
 import '../core/theme.dart';
 import 'auth.dart';
 import 'cast_sheet.dart';
+import 'download_sheet.dart';
 import 'player_skin.dart';
 import 'vip_sheet.dart';
 import 'widgets.dart';
@@ -169,6 +170,7 @@ class _PlayerPageState extends State<PlayerPage> {
     _save();
     _cast?.stop();
     _ctrl?.removeListener(_onTick);
+    _ctrl?.pause();
     _ctrl?.dispose();
     _restoreChrome();
     super.dispose();
@@ -660,6 +662,27 @@ class _PlayerPageState extends State<PlayerPage> {
 
   Future<void> _openLogin() => showAuthSheet(context);
 
+  bool get _canDownload {
+    final st = context.read<AppState>();
+    return st.dlEnabled && widget.directUrl == null && _episodes.isNotEmpty;
+  }
+
+  /// 打开选集下载面板：默认选中当前正在播放的集。
+  void _openDownload() {
+    final episodes = _episodes;
+    if (episodes.isEmpty) return;
+    final cur = _ep.clamp(0, episodes.length - 1);
+    showAppSheet(
+      context,
+      child: EpisodeDownloadSheet(
+        vod: widget.vod,
+        site: widget.site,
+        episodes: episodes,
+        preselect: {cur},
+      ),
+    );
+  }
+
   // ───────────────────────── 界面 ─────────────────────────
 
   /// 退出播放页时，必须把横屏 + 沉浸式状态彻底还原，否则返回后
@@ -675,13 +698,21 @@ class _PlayerPageState extends State<PlayerPage> {
     ));
   }
 
+  /// 退出播放：先暂停视频并停掉投屏，确保返回其它页面后影片不再后台播放，
+  /// 再还原横屏 / 沉浸式状态。
+  void _exitPlayback() {
+    _ctrl?.pause();
+    _cast?.stop();
+    _restoreChrome();
+  }
+
   @override
   Widget build(BuildContext context) {
     final st = context.watch<AppState>();
     final s = st.s;
     return PopScope(
       // 在页面退栈前先把横屏 / 沉浸式还原，避免「返回后整页仍是全屏」的卡顿
-      onPopInvokedWithResult: (_, _) => _restoreChrome(),
+      onPopInvokedWithResult: (_, _) => _exitPlayback(),
       child: Scaffold(
         backgroundColor: Colors.black,
         body: _landscape
@@ -862,6 +893,12 @@ class _PlayerPageState extends State<PlayerPage> {
                   subtitle: _subtitle(),
                   onBack: () => Navigator.pop(context),
                   actions: [
+                    if (_canDownload)
+                      SkinIconButton(
+                        icon: Icons.cloud_download_outlined,
+                        onTap: _openDownload,
+                        tooltip: s.t('dlSubmit'),
+                      ),
                     SkinIconButton(
                       icon: _cast == null ? Icons.cast_rounded : Icons.cast_connected_rounded,
                       active: _cast != null,

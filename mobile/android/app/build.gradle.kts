@@ -26,6 +26,11 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // 仅发布 Android arm64-v8a（v8）包；同时裁掉插件携带的 v7a / x86_64 原生库
+        ndk {
+            abiFilters.clear()
+            abiFilters.add("arm64-v8a")
+        }
     }
 
     signingConfigs {

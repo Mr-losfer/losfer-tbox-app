@@ -127,7 +127,11 @@ class _ShellPageState extends State<ShellPage> {
                   Expanded(
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
-                      onTap: () => setState(() => _i = i),
+                      onTap: () {
+                        // 切到「下载」Tab 时通知常驻列表立即刷新
+                        if (i == 3) DownloadsPage.refreshTick.value++;
+                        setState(() => _i = i);
+                      },
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [

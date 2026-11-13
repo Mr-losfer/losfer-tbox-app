@@ -16,6 +16,10 @@ import 'widgets.dart';
 class DownloadsPage extends StatelessWidget {
   const DownloadsPage({super.key});
 
+  /// 切到「下载」Tab 时自增，用于通知常驻的列表页立即刷新
+  /// （IndexedStack 会保活子页，initState 不会再次触发）。
+  static final ValueNotifier<int> refreshTick = ValueNotifier<int>(0);
+
   static Route<void> route() => PageRouteBuilder<void>(
         transitionDuration: const Duration(milliseconds: 280),
         pageBuilder: (_, a, _) => const _DownloadsView(),
@@ -52,7 +56,18 @@ class _DownloadsViewState extends State<_DownloadsView> with SingleTickerProvide
   void initState() {
     super.initState();
     _tab = TabController(length: 2, vsync: this);
+    DownloadsPage.refreshTick.addListener(_onExternalRefresh);
     _init();
+  }
+
+  /// Tab 被切换到时触发：已配置则静默刷新，未配置则重新尝试初始化。
+  void _onExternalRefresh() {
+    if (!mounted) return;
+    if (_client == null) {
+      _init();
+    } else {
+      _refresh(silent: true);
+    }
   }
 
   void _init() {
@@ -70,6 +85,7 @@ class _DownloadsViewState extends State<_DownloadsView> with SingleTickerProvide
 
   @override
   void dispose() {
+    DownloadsPage.refreshTick.removeListener(_onExternalRefresh);
     _poll?.cancel();
     _tab.dispose();
     _urlCtrl.dispose();
@@ -77,13 +93,15 @@ class _DownloadsViewState extends State<_DownloadsView> with SingleTickerProvide
     super.dispose();
   }
 
-  Future<void> _refresh() async {
+  Future<void> _refresh({bool silent = false}) async {
     final c = _client;
     if (c == null) return;
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+    if (!silent) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
     try {
       final futures = await Future.wait([
         c.tasks(status: 'active', limit: 50),
@@ -206,6 +224,8 @@ class _DownloadsViewState extends State<_DownloadsView> with SingleTickerProvide
   Widget build(BuildContext context) {
     final st = context.watch<AppState>();
     final s = st.s;
+    // 作为底部 Tab 使用时处于根路由，不需要「返回」；仅被 push 时显示。
+    final canPop = Navigator.of(context).canPop();
     if (_client == null) {
       return Scaffold(
         backgroundColor: C.bg,
@@ -215,8 +235,10 @@ class _DownloadsViewState extends State<_DownloadsView> with SingleTickerProvide
             children: [
               Row(
                 children: [
-                  IconPill(icon: Icons.arrow_back_rounded, size: 36, onTap: () => Navigator.pop(context)),
-                  const SizedBox(width: 12),
+                  if (canPop) ...[
+                    IconPill(icon: Icons.arrow_back_rounded, size: 36, onTap: () => Navigator.pop(context)),
+                    const SizedBox(width: 12),
+                  ],
                   Text(s.t('downloadList'), style: T.h2),
                 ],
               ),
@@ -263,11 +285,13 @@ class _DownloadsViewState extends State<_DownloadsView> with SingleTickerProvide
               padding: const EdgeInsets.fromLTRB(C.pad, 10, C.pad, 0),
               child: Row(
                 children: [
-                  IconPill(icon: Icons.arrow_back_rounded, size: 36, onTap: () => Navigator.pop(context)),
-                  const SizedBox(width: 12),
+                  if (canPop) ...[
+                    IconPill(icon: Icons.arrow_back_rounded, size: 36, onTap: () => Navigator.pop(context)),
+                    const SizedBox(width: 12),
+                  ],
                   Text(s.t('downloadList'), style: T.h2),
                   const Spacer(),
-                  IconPill(icon: Icons.refresh_rounded, size: 36, onTap: _refresh),
+                  IconPill(icon: Icons.refresh_rounded, size: 36, onTap: () => _refresh()),
                 ],
               ),
             ),

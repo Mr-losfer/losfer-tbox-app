@@ -47,8 +47,8 @@ class AppState extends ChangeNotifier {
   static const defaultBase = 'http://test3.noqi.pro:8090';
 
   /// 当前 App 版本（用于内置更新比对）。与 pubspec.yaml 保持一致。
-  static const String versionName = '1.0.3';
-  static const int versionCode = 4;
+  static const String versionName = '1.0.4';
+  static const int versionCode = 5;
 
   /// GitHub 仓库（内置更新从这里拉 Releases），格式 owner/repo
   static const String updateRepo = 'Mr-losfer/losfer-tbox-app';

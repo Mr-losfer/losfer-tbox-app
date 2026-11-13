@@ -22,55 +22,13 @@ jobs:
           cache: true
       - working-directory: mobile
         run: flutter pub get
+      # 仅发布 Android arm64-v8a（v8）包，不再构建 PC / Windows
       - working-directory: mobile
-        run: flutter build apk --release
-      - working-directory: mobile
-        run: flutter build appbundle --release
-      - uses: actions/upload-artifact@v4
-        with:
-          name: android
-          path: |
-            mobile/build/app/outputs/flutter-apk/app-release.apk
-            mobile/build/app/outputs/bundle/release/app-release.aab
-
-  ios:
-    runs-on: macos-14
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: "3.47.9"
-          channel: stable
-          cache: true
-      - working-directory: mobile
-        run: flutter pub get
-      - working-directory: mobile/ios
-        run: pod install
-      - name: Build unsigned IPA
+        run: flutter build apk --release --target-platform android-arm64
+      - name: Package arm64-v8a
         working-directory: mobile
-        run: |
-          flutter build ios --release --no-codesign
-          mkdir -p build/Payload
-          cp -R build/ios/iphoneos/Runner.app build/Payload/
-          cd build && zip -qry Noqi-unsigned.ipa Payload
+        run: cp build/app/outputs/flutter-apk/app-release.apk Noqi-arm64-v8a.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: ios-unsigned-ipa
-          path: mobile/build/Noqi-unsigned.ipa
-      # 如需签名版，添加 secrets：BUILD_CERTIFICATE_BASE64 / P12_PASSWORD / PROVISION_PROFILE_BASE64 / TEAM_ID
-      # 然后改用：flutter build ipa --release --export-method ad-hoc
-
-  windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "6.0.x"
-      - name: Publish
-        working-directory: windows
-        run: dotnet publish -c Release -r win-x64 --self-contained true -o dist/Noqi
-      - uses: actions/upload-artifact@v4
-        with:
-          name: windows-x64
-          path: windows/dist/Noqi
+          name: noqi-android-arm64-v8a
+          path: mobile/Noqi-arm64-v8a.apk

@@ -44,7 +44,8 @@ class DlTask {
 
   factory DlTask.fromJson(Map<String, dynamic> j) {
     final status = (j['status'] ?? 'queued').toString();
-    final size = _num(j['size']);
+    // 服务端用 total 表示总字节数（size 仅完成后才填），优先取 total
+    final size = _num(j['total']) != 0 ? _num(j['total']) : _num(j['size']);
     final downloaded = _num(j['downloaded']) != 0 ? _num(j['downloaded']) : _num(j['downloaded_size']);
     int progress = _num(j['progress']);
     if (progress <= 0 && size > 0 && downloaded > 0) {
@@ -59,7 +60,8 @@ class DlTask {
       downloaded: downloaded,
       saveDir: s(j['save_dir']),
       url: s(j['url']),
-      speed: s(j['speed']),
+      // 服务端 speed 为 B/s（整型），此处格式化为可读文本
+      speed: _fmtSpeed(_num(j['speed'])),
     );
   }
 }
@@ -103,7 +105,8 @@ class DlClient {
     });
     _assert(r);
     final data = r.data;
-    final list = data is Map ? data['items'] ?? data['list'] : data;
+    // 服务端返回 {"tasks":[...],"total":...}，兼容 items / list 旧命名
+    final list = data is Map ? data['tasks'] ?? data['items'] ?? data['list'] : data;
     if (list is! List) return const [];
     return list.whereType<Map>().map((e) => DlTask.fromJson(e.cast<String, dynamic>())).toList();
   }
@@ -179,8 +182,21 @@ class DlException implements Exception {
 
 int _num(dynamic v) {
   if (v is int) return v;
-  if (v is num) return v.toInt();
+  if (v is num) return v.round();
   return int.tryParse(s(v)) ?? 0;
+}
+
+/// 把服务端返回的 B/s（整型）格式化为可读速率，如 "3.2 MB/s"。
+String _fmtSpeed(int bps) {
+  if (bps <= 0) return '';
+  const u = ['B/s', 'KB/s', 'MB/s', 'GB/s'];
+  var x = bps.toDouble();
+  var i = 0;
+  while (x >= 1024 && i < u.length - 1) {
+    x /= 1024;
+    i++;
+  }
+  return '${x.toStringAsFixed(x < 10 ? 1 : 0)} ${u[i]}';
 }
 
 String s(dynamic v) => v == null ? '' : v.toString();
