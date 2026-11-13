@@ -50,8 +50,8 @@ class AppState extends ChangeNotifier {
   static const String versionName = '1.0.3';
   static const int versionCode = 4;
 
-  /// GitHub 仓库（内置更新从这里拉 Releases）
-  static const String updateRepo = 'losfer-tbox-app';
+  /// GitHub 仓库（内置更新从这里拉 Releases），格式 owner/repo
+  static const String updateRepo = 'Mr-losfer/losfer-tbox-app';
 
   /// 下载加速代理：优先走它，失败自动回退直连
   static const String ghProxy = 'https://gh-proxy.com/';

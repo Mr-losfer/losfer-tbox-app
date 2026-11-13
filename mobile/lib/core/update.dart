@@ -27,7 +27,7 @@ class UpdateInfo {
 }
 
 class Updater {
-  static const String _repo = 'losfer-tbox-app';
+  static const String _repo = 'Mr-losfer/losfer-tbox-app';
   static final Dio _dio = Dio(BaseOptions(
     connectTimeout: const Duration(seconds: 12),
     receiveTimeout: const Duration(seconds: 20),
