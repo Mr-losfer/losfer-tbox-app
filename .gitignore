@@ -1,0 +1,24 @@
+# ── 通用 ──
+.DS_Store
+*.log
+.idea/
+.vs/
+
+# ── Flutter (mobile/) ──
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/.flutter-plugins-dependencies.bak
+mobile/build/
+mobile/android/.gradle/
+mobile/android/app/build/
+mobile/android/build/
+mobile/ios/.symlinks/
+mobile/ios/Pods/
+mobile/ios/Flutter/Flutter.framework/
+mobile/ios/Flutter/Flutter.podspec
+mobile/dist/
+
+# ── Windows (windows/) ──
+windows/bin/
+windows/obj/
+windows/dist/

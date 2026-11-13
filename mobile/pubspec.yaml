@@ -1,0 +1,66 @@
+name: noqi
+description: "Noqi — 简洁极致的影视客户端"
+publish_to: 'none'
+version: 1.0.3+4
+
+environment:
+  sdk: ^3.13.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+  dio: ^5.11.1
+  provider: ^6.1.5+1
+  shared_preferences: ^2.5.6
+  video_player: ^2.14.1
+  url_launcher: ^6.3.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/branding/
+  fonts:
+    - family: NotoSansArabic
+      fonts:
+        - asset: assets/fonts/NotoSansArabic-400.ttf
+        - asset: assets/fonts/NotoSansArabic-500.ttf
+          weight: 500
+        - asset: assets/fonts/NotoSansArabic-700.ttf
+          weight: 700
+    # ── 10 款可选维吾尔语字体（设置中心可切换） ──────────────
+    - family: ALKATIPAsliya
+      fonts:
+        - asset: assets/fonts/alkatip-asliya.ttf
+    - family: ALKATIPBasma
+      fonts:
+        - asset: assets/fonts/alkatip-basma.ttf
+    - family: ALKATIPKitab
+      fonts:
+        - asset: assets/fonts/alkatip-kitab.ttf
+    - family: ALKATIPKufi
+      fonts:
+        - asset: assets/fonts/alkatip-kufi.ttf
+    - family: ALKATIPTalik
+      fonts:
+        - asset: assets/fonts/alkatip-talik.ttf
+    - family: AlpsoftBasmaB
+      fonts:
+        - asset: assets/fonts/alpsoftbasma-b.ttf
+    - family: AlpsoftNesq
+      fonts:
+        - asset: assets/fonts/alpsoftnesq.ttf
+    - family: AlpsoftKufi
+      fonts:
+        - asset: assets/fonts/alpsoftkufi.ttf
+    - family: UKIJTuz
+      fonts:
+        - asset: assets/fonts/ukijtuz.ttf
+    - family: UUSUNAsliya
+      fonts:
+        - asset: assets/fonts/uus-un-asliya.ttf
