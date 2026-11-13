@@ -356,7 +356,7 @@ class _SubmitBar extends StatelessWidget {
           const SizedBox(width: 8),
           SizedBox(
             height: 42,
-            child: GoldButton(label: '提交', onTap: onSubmit, height: 42),
+            child: GoldButton(label: '提交', onTap: onSubmit, height: 42, expanded: false),
           ),
         ],
       ),
